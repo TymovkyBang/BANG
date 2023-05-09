@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using TMPro;
 using UnityEngine;
 
@@ -7,7 +8,6 @@ public class SlotManager
 {
 
     public List<Slot> slots = new List<Slot>();
-    public bool full = false;
     public int shift = 0;
 
 
@@ -17,16 +17,17 @@ public class SlotManager
         slots.Add(slot);
     }   
 
-    private Slot findEmptySlot(){
-        for (int i = 0; i < slots.Count; i++) if (slots[i].Available) return slots[i];
-        this.full = true;
-        return null;
-    }
-
     public Slot getSlot(int index){
         for (int i = 0; i < slots.Count; i++) if (slots[i].Index == index) return slots[i];
         return null;
     }
+
+    public void visibility(bool visible)
+    {
+		foreach (Slot slot in slots) { slot.gameObject.SetActive(visible); }
+		shiftLeftButton.SetActive(visible);
+        shiftRightButton.SetActive(visible);
+	}
 
     public void update(){
         
@@ -48,8 +49,9 @@ public class SlotManager
         else {
             this.shiftLeftButton.SetActive(false);
         }
+
         for (int i = 0; i < this.slots.Count; i++){
-            if (i < cycles) this.getSlot(i).Card = GameManager.localPlayer.CardsInHand[i + this.shift];
+            if (i < cycles) this.getSlot(i).CardInHand = GameManager.localPlayer.CardsInHand[i + this.shift];
             else this.getSlot(i).empty();
             
         }

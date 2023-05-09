@@ -2,6 +2,9 @@
 public class Deputy : Role {
 
     public Deputy() {
-        this.name = "Pomocník šerifa";
-    }
+        this.name = "Deputy"; // Pomocník šerifa
+		this.index = 3;
+
+		GameManager.rolesList.Add(this);
+	}
 }

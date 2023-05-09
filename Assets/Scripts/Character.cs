@@ -2,7 +2,7 @@
 public abstract class Character
 {
     protected string[] name = {"Forename", "Surname"};
-    protected int health;
+    protected int health, index;
 
     public string[] Name {
         get {
@@ -21,4 +21,6 @@ public abstract class Character
         this.name[0] = forename;
         this.name[1] = surname;
     }
+
+    public int Index { get { return this.index; } }
 }

@@ -2,6 +2,9 @@
 public class Outlaw : Role {
 
     public Outlaw() {
-        this.name = "Bandita";
-    }
+        this.name = "Outlaw"; // Bandita
+		this.index = 2;
+
+		GameManager.rolesList.Add(this);
+	}
 }

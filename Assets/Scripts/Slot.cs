@@ -8,7 +8,13 @@ public class Slot : MonoBehaviour
 {   
     [SerializeField] int index;
     private bool available = true;
-    private Card card = null;
+    private CardInHand cardInHand = null;
+
+    [SerializeField] GameObject backgroundObject;
+    [SerializeField] GameObject artworkObject;
+    [SerializeField] GameObject descriptionObject;
+    [SerializeField] GameObject nameObject;
+    [SerializeField] GameObject markObject;
 
     void Start() {
         GameManager.slotManager.addSlot(this);
@@ -26,40 +32,39 @@ public class Slot : MonoBehaviour
         }
     }
 
-    public Card Card{
+    public CardInHand CardInHand{
         set {
             setCard(value);
         }
         get {
-            return this.card;
+            return this.cardInHand;
         }
     }
 
     public void empty(){
         gameObject.SetActive(false);
-        this.card = null;
-        this.available = true;
-        GameManager.slotManager.full = false;
+		this.cardInHand = null;
+		this.available = true;
     }
 
-    private void setCard(Card card){
+    private void setCard(CardInHand card){
         gameObject.SetActive(true);
-        this.card = card;
+        this.cardInHand = card;
         this.available = false;
 
-        gameObject.transform.GetChild(3).gameObject.GetComponent<TextMeshProUGUI>().text = this.card.name;
-        gameObject.transform.GetChild(2).gameObject.GetComponent<TextMeshProUGUI>().text = this.card.description;
-        gameObject.transform.GetChild(1).gameObject.GetComponent<Image>().sprite = this.card.artwork;
-        gameObject.transform.GetChild(0).gameObject.GetComponent<Image>().sprite = this.card.background;
+        this.nameObject.GetComponent<TextMeshProUGUI>().text = this.cardInHand.card.name;
+        this.descriptionObject.GetComponent<TextMeshProUGUI>().text = this.cardInHand.card.description;
+        this.artworkObject.GetComponent<Image>().sprite = this.cardInHand.card.artwork;
+        this.backgroundObject.GetComponent<Image>().sprite = this.cardInHand.card.background;
     }
 
-    public bool Available{
+    public bool Available  {
         get {
             return this.available;
         }
     }
 
     public void use(){
-        GameManager.localPlayer.playCard(this.index + GameManager.slotManager.shift);
+		GameManager.localPlayer.playCard(this.index + GameManager.slotManager.shift);
     }
 }

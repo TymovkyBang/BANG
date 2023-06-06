@@ -3,7 +3,7 @@ public class Dynamite : Placeable
 {
     protected override void init()
     {
-        this.numberOfCards = 100; // 1
+        this.numberOfCards = 1; // 1
     }
 
     public override bool use(){

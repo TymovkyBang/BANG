@@ -175,6 +175,7 @@ public class Player
 			hasJail = false;
 		}
 
+		Debug.Log("Začal kolo lol");
 		CardsToDraw += 2;
 	}
 	public bool endRound()

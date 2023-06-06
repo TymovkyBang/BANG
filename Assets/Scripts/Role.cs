@@ -1,6 +1,7 @@
 
 public abstract class Role
 {
+    protected string color;
     protected int index;
     protected string name;
     protected int bonusHealth = 0;
@@ -20,6 +21,13 @@ public abstract class Role
 		get
 		{
 			return this.index;
+		}
+	}
+	public string Color
+	{
+		get
+		{
+			return this.color;
 		}
 	}
 }

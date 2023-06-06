@@ -26,7 +26,7 @@ public class GameManager : MonoBehaviour {
 
     // Characters
 
-    public static Joe joe = new Joe(); // ( Mama )
+    public static Joe joe = new Joe(); //(Mama)
 
 	// Player
 
@@ -50,6 +50,7 @@ public class GameManager : MonoBehaviour {
     [SerializeField] GameObject deathScreenObject;
     [SerializeField] GameObject endScreenObject;
 	[SerializeField] GameObject logObject;
+	[SerializeField] GameObject infoHudObject;
 
 	public static GameObject drawButton;
     public static GameObject gameCanvas;
@@ -58,6 +59,7 @@ public class GameManager : MonoBehaviour {
     public static GameObject deathScreen;
     public static GameObject logObj;
 	public static GameObject endScreen;
+	public static GameObject infoHUD;
 
 	public static PlayerNetwork selectedPlayer = null;
 
@@ -71,13 +73,13 @@ public class GameManager : MonoBehaviour {
         endScreen = this.endScreenObject;
 		deathScreen = this.deathScreenObject;
 		logObj = this.logObject;
+        infoHUD = this.infoHudObject;
 
         console.setTextField(this.logObject.GetComponent<TextMeshProUGUI>());
 
 		endRoundButton.SetActive(false);
 		gameCanvasObject.SetActive(false);
 	}
-
 
     // Variables
 
@@ -119,14 +121,17 @@ public class GameManager : MonoBehaviour {
     }
 
     public static void loadAndShuffleRoleList()
-    {   
+    {
+        Debug.Log("Num of players:" + localNetwork.numberOfPlayers.Value);
         if (localNetwork.numberOfPlayers.Value == 1)
-        {
+		{
+			localNetwork.setSheriffIDServerRpc(0);
 			localNetwork.selectRoleServerRpc(0, getRole("sheriff").Index);
             return;
 		}
         else if (localNetwork.numberOfPlayers.Value == 2)
         {
+            localNetwork.setSheriffIDServerRpc(0);
 			localNetwork.selectRoleServerRpc(0, getRole("sheriff").Index);
 			localNetwork.selectRoleServerRpc(1, getRole("outlaw").Index);
 			return;
@@ -167,12 +172,12 @@ public class GameManager : MonoBehaviour {
         }
         return null;
     }
+
     public static int countUsedSlots(){
         int usedSlots = 0;
         for (int i = 0; i < slotManager.slots.Count; i++) if (!slotManager.slots[i].Available) usedSlots++;
         return usedSlots;
     }
-
 
     public static void drawCard()
     {
@@ -193,9 +198,7 @@ public class GameManager : MonoBehaviour {
         if (localNetwork.isHost)
         { 
             loadAndShuffleRoleList();
-			localNetwork.setTurnServerRpc((int)getSheriff().ID);
 		}
-        sitDown();
 		gameCanvas.SetActive(true);
     }
 
@@ -235,11 +238,15 @@ public class GameManager : MonoBehaviour {
        
         foreach (PlayerNetwork network in allNetworks)
         {
+            Debug.Log("netID: " + network.ID + "(sheriffID: " + localNetwork.sheriffID + ")");
             if (network.ID == (ulong)localNetwork.sheriffID)
             {
                 network.gameObject.GetComponentInChildren<Target>().defaultColor = Color.yellow;
             }
-
+            else
+            {
+				network.gameObject.GetComponentInChildren<Target>().defaultColor = Color.black;
+			}
             network.transform.position = getChair((int)network.ID).transform.position;
 			network.transform.eulerAngles = new Vector3(network.transform.eulerAngles.x, getChair((int)network.ID).transform.rotation.eulerAngles.y, network.transform.eulerAngles.z);
 		}
@@ -256,5 +263,33 @@ public class GameManager : MonoBehaviour {
 		await Task.Delay(GameManager.cooldownTime * 1000);
 
 		GameManager.localPlayer.onCooldown = false;
+	}
+
+    public static Role getLocalPlayerRole()
+    {
+        return getRole(localNetwork.roleID);
+
+	}
+
+    public static void setInfoHUD()
+    {
+        TextMeshProUGUI playerName = infoHUD.transform.GetChild(0).gameObject.GetComponent<TextMeshProUGUI>();
+		TextMeshProUGUI role = infoHUD.transform.GetChild(1).gameObject.GetComponent<TextMeshProUGUI>();
+		TextMeshProUGUI cardsOnTable = infoHUD.transform.GetChild(2).gameObject.GetComponent<TextMeshProUGUI>();
+
+        playerName.text = "<color=\"white\">" + localNetwork.nickname;
+        role.text = "<color=\""+ getLocalPlayerRole().Color + "\">" + getLocalPlayerRole().Name;
+        cardsOnTable.text = "";
+	}
+
+    public static void updateCardsOnTableHUD()
+    {
+		TextMeshProUGUI cardsOnTable = infoHUD.transform.GetChild(2).gameObject.GetComponent<TextMeshProUGUI>();
+
+        cardsOnTable.text = "\n";
+        if (localPlayer.hasBarrel) cardsOnTable.text += "Barell\n";
+        if (localPlayer.hasDynamite) cardsOnTable.text += "Dynamite\n";
+        if (localPlayer.hasJail) cardsOnTable.text += "Jail\n";
+        if (localPlayer.hasVolcanic) cardsOnTable.text += "Volcanic\n";
 	}
 }   

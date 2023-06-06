@@ -18,6 +18,8 @@ public class PlayerNetwork : NetworkBehaviour
 	public bool usedBangAgainstIndians = false;
 
 	public int outlaws = 0;
+	public int deputies = 0;
+	public int renegades = 0;
 
 	private int whoseTurnItIs = 0;
 
@@ -85,6 +87,7 @@ public class PlayerNetwork : NetworkBehaviour
 	[ServerRpc(RequireOwnership = false)]
 	public void setTurnServerRpc(int who)
 	{
+		Debug.Log("SET TURN SERVER RPC");
 		setTurnClientRpc(who);
 	}
 	[ClientRpc]
@@ -104,7 +107,7 @@ public class PlayerNetwork : NetworkBehaviour
 	[ClientRpc]
 	public void startIndiansClientRpc(ulong who)
 	{
-		GameManager.console.log("Indians! You have 10 seconds to use BANG!", "red");
+		GameManager.console.log($"Indians! You have {GameManager.cooldownTime} seconds to use BANG!", "red");
 		GameManager.localNetwork.indians = true;
 		if (GameManager.localNetwork.ID == who)
 		{
@@ -129,6 +132,8 @@ public class PlayerNetwork : NetworkBehaviour
 
 	public void nextRound()
 	{
+		Debug.Log("NEXT ROUND; Number of Outlaws: " + GameManager.localNetwork.outlaws);
+
 		setTurnServerRpc((whoseTurnItIs + 1) % numberOfPlayers.Value);
 	}
 
@@ -142,9 +147,12 @@ public class PlayerNetwork : NetworkBehaviour
 	{
 		roleListString += $"<color=\"blue\">Player {playerID}<color=\"white\">  -  <color=\"green\">{GameManager.getRole(roleIndex).Name}\n";
 		if (GameManager.getRole(roleIndex) is Outlaw) outlaws++;
+		if (GameManager.getRole(roleIndex) is Renegade) renegades++;
+		if (GameManager.getRole(roleIndex) is Deputy) deputies++;
 		if (GameManager.localNetwork.ID != playerID) return;
 		GameManager.localPlayer.Role = GameManager.getRole(roleIndex);
 		GameManager.localNetwork.roleID = roleIndex;
+		GameManager.setInfoHUD();
 	}
 
 	[ServerRpc(RequireOwnership = false)]
@@ -155,7 +163,11 @@ public class PlayerNetwork : NetworkBehaviour
 	[ClientRpc]
 	private void setSheriffIDClientRpc(int ID)
 	{
-		sheriffID = ID;
+		Debug.Log(ID);
+		GameManager.localNetwork.sheriffID = ID;
+		GameManager.sitDown(); // TEST
+		Debug.Log("SET SHERIFF ID CLIENT RPC");
+		if (this.host) GameManager.localNetwork.setTurnServerRpc(ID);
 	}
 
 	[ServerRpc(RequireOwnership = false)]
@@ -226,21 +238,33 @@ public class PlayerNetwork : NetworkBehaviour
 		GameManager.console.log(message, globalMessageColor);
 	}
 
+	// REWORK - nvm it works don't touch it
 
 	[ServerRpc(RequireOwnership = false)]
 	public void dieServerRpc(ulong victimID, int roleID)
 	{
 		dieClientRpc(victimID, roleID);
-		if (GameManager.getRole(roleID) is Sheriff) endGameClientRpc("Outlaws won!");
-
+		deathServerRpc(roleID);
 	}
 	[ClientRpc]
 	public void dieClientRpc(ulong victimID, int roleID)
 	{
-		if (GameManager.getRole(roleID) is Outlaw) outlaws--;
-		if (GameManager.localNetwork.outlaws <= 0) endGameServerRpc("Sheriff won!");
 		GameManager.console.log($"Player {victimID} has died! His role was <color=\"blue\">{GameManager.getRole(roleID).Name}<color=\"red\">.", "red");
 		GameManager.allNetworks[(int)victimID].gameObject.SetActive(false);
+	}
+
+	[ServerRpc(RequireOwnership = false)]
+	public void deathServerRpc(int roleID)
+	{
+
+
+		if (GameManager.getRole(roleID) is Outlaw) GameManager.localNetwork.outlaws--;
+		else if (GameManager.getRole(roleID) is Deputy) GameManager.localNetwork.deputies--;
+		else if (GameManager.getRole(roleID) is Renegade) GameManager.localNetwork.renegades--;
+
+		if (GameManager.localNetwork.outlaws == 0 && GameManager.localNetwork.renegades == 0) endGameClientRpc("Sheriff won!");
+		else if (GameManager.getRole(roleID) is Sheriff && GameManager.localNetwork.renegades != 0 && GameManager.localNetwork.outlaws == 0 && GameManager.localNetwork.deputies == 0) endGameClientRpc("Outlaws won!");
+		else if (GameManager.getRole(roleID) is Sheriff) endGameClientRpc("Outlaws won!");
 	}
 
 	[ServerRpc(RequireOwnership = false)]
@@ -343,6 +367,7 @@ public class PlayerNetwork : NetworkBehaviour
 		{
 			if (network.ID == playerToSyncID)
 			{
+				GameManager.updateCardsOnTableHUD();
 				network.hisTurnObject.SetActive(hisTurn);
 				network.hasBarrelObject.SetActive(hasBarrel);
 				network.hasVolcanicObject.SetActive(hasVolcanic);

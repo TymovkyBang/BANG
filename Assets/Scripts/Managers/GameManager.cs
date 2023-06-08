@@ -250,7 +250,7 @@ public class GameManager : MonoBehaviour {
             network.transform.position = getChair((int)network.ID).transform.position;
 			network.transform.eulerAngles = new Vector3(network.transform.eulerAngles.x, getChair((int)network.ID).transform.rotation.eulerAngles.y, network.transform.eulerAngles.z);
 		}
-        GameManager.mainCamera.transform.position = new Vector3(getChair((int)localNetwork.ID).transform.position.x, GameManager.mainCamera.transform.position.y, getChair((int)localNetwork.ID).transform.position.z);
+        GameManager.mainCamera.transform.position = new Vector3(getChair((int)localNetwork.ID).transform.position.x, 20, getChair((int)localNetwork.ID).transform.position.z);
 
         mainCamera.transform.eulerAngles = new Vector3(25, getChair((int)localNetwork.ID).transform.rotation.eulerAngles.y, 0);
 

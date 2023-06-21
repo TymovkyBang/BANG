@@ -35,6 +35,12 @@ public class NetworkManagerUI : MonoBehaviour
 			ipAddress = ip.text;
 			SetIpAddress();
 			NetworkManager.Singleton.StartClient();
+
+			if (GameManager.localNetwork.numberOfPlayers.Value > 7)
+            {
+				NetworkManager.Singleton.Shutdown();
+            }
+
 			gameObject.SetActive(false);
 
 		});
@@ -48,6 +54,11 @@ public class NetworkManagerUI : MonoBehaviour
 		});
 		startBtn.onClick.AddListener(() => // START GAME
 		{
+			if (GameManager.localNetwork.numberOfPlayers.Value < 4)
+			{
+				Debug.Log("Not enought players in the session!");
+				return;
+			}
 			GameManager.localNetwork.startGameServerRpc();
 			gameObject.SetActive(false);
 		});
